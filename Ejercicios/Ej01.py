@@ -44,5 +44,5 @@ def traductor_jerga():
 
 
 
-if __name__ = "__main__":
+if __name__ == "__main__":
     traductor_jerga()
