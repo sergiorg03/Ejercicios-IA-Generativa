@@ -14,11 +14,7 @@ def candidates_filter():
 
     """ 
         Las opciones con las que se comparará en este caso el puesto ofrecido y obtendrá al mejor candidato mediante la distancia semántica 
-<<<<<<< HEAD
         mediante la similitud del coseno (Cosine Similarity) entre vectores euclidianos.
-=======
-        mediante la similitud del coseno (Cosine Similarity) entre vectores
->>>>>>> 89b6cecd0d33c3a397fe5d062bfacb3f9b020680
     """
     ejemplos_candidatos = [
         "Experto en Python y desarrollo backend con 5 años de experiencia, especializado en APIs REST, bases de datos (PostgreSQL, MongoDB) y frameworks como FastAPI y Django.", 
