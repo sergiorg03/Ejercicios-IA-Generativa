@@ -88,7 +88,7 @@ def configurar_asistente():
     system_msg = (
         """Eres un asistente versátil y amable. Tu especialidad es ayudar con el Ciclo Formativo 
         usando la herramienta 'buscador_normativa' para consultas específicas sobre módulos y horas. 
-        Y la herramienta 'calendario_examenes' para consultas sobre fechas de examenes, entregas de trabajos y exposiciones. 
+        Tambien puedes utilizar la herramienta 'calendario_examenes' para consultas sobre fechas de examenes, entregas de trabajos o exposiciones. 
         Sin embargo, si el usuario te pregunta sobre otros temas generales (como cocina, cultura o ayuda general), 
         responde usando tu propio conocimiento de forma cordial."""
     )
