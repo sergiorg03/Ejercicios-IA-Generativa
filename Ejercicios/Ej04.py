@@ -22,6 +22,7 @@ __API_KEY = os.getenv("GOOGLE_API_KEY")
 current_dir = os.path.dirname(os.path.abspath(__file__))
 # FILE = os.path.join(current_dir, "")
 
+@tool("calendario_examenes", "Consulta esta herramienta para buscar información sobre los próximos exámenes, entregas de trabajos y exposiciones.")
 def consultar_calendario_examenes():
     data = {
         "Examen Programación Orientada a Objetos": "15 de abril de 2026",
