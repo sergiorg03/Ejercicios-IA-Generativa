@@ -24,15 +24,16 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 
 def consultar_calendario_examenes():
     data = {
-        "Entrega trabajo POO": "7 de abril de 2026",
-        "Entrega boletin ADP" : "27 de abril de 2026",
-        "Speaking C1" : "28 de mayo de 2026",
-        "Exposicion sobre la IA" : "7 de abril de 2026",
+        "Examen Programación Orientada a Objetos": "15 de abril de 2026",
+        "Examen Sistemas de Gestión Empresarial" : "27 de abril de 2026",
+        "Examen escrito de Inglés" : "28 de mayo de 2026",
+        "Examen de Lenguajes de Marcas" : "7 de abril de 2026",
+        "Examen de Bases de datos PL/SQL" : "15 de abril de 2026",
     }
 
     docs = [
         Document(
-            page_content=f"{evento}: {fecha}",
+            page_content=f"Evento: {evento}. Fecha: {fecha}",
             metadata={"tipo": "calendario"}
         )
         for evento, fecha in data.items()
@@ -66,14 +67,13 @@ def configurar_asistente():
         description="Consulta para buscar información oficial sobre el ciclo, módulos y horas."
     )
 
-    #embeddings_cal = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
     vector_db_cal = FAISS.from_documents(consultar_calendario_examenes(), embeddings)
-    retriever_cal = vector_db_cal.as_retriever(search_kwargs={"k": 5})    
+    retriever_cal = vector_db_cal.as_retriever(search_kwargs={"k": 3})    
 
     tools_calendario = create_retriever_tool(
         retriever=retriever_cal,
         name="calendario_examenes",
-        description="Consulta para buscar información sobre los siguiente examenes, entrega de trabajos y exposiciones."
+        description="Consulta esta herramienta para buscar información sobre los próximos exámenes, entregas de trabajos y exposiciones."
     )
 
     tools = [tool, tools_calendario]
@@ -81,16 +81,30 @@ def configurar_asistente():
     llm = ChatGoogleGenerativeAI(
         model="gemini-2.5-flash-lite",  # Usamos la versión estable
         temperature=0,
-        max_output_tokens=600,  # <-- (500-1000 es ideal para RAG)
+        max_output_tokens=700,  # <-- (500-1000 es ideal para RAG)
         max_retries=2,
     )
 
     system_msg = (
-        """Eres un asistente versátil y amable. Tu especialidad es ayudar con el Ciclo Formativo 
-        usando la herramienta 'buscador_normativa' para consultas específicas sobre módulos y horas. 
-        Tambien puedes utilizar la herramienta 'calendario_examenes' para consultas sobre fechas de examenes, entregas de trabajos o exposiciones. 
-        Sin embargo, si el usuario te pregunta sobre otros temas generales (como cocina, cultura o ayuda general), 
-        responde usando tu propio conocimiento de forma cordial."""
+        """
+        Eres un asistente versátil y amable especializado en ayudar con el Ciclo Formativo.
+
+        Dispones de las siguientes herramientas:
+        - 'buscador_normativa': para consultas sobre módulos, contenidos y horas.
+        - 'calendario_examenes': para fechas de exámenes, entregas y exposiciones.
+
+        Reglas IMPORTANTES:
+        - Usa SIEMPRE las herramientas cuando la pregunta sea sobre estudios, módulos o fechas.
+        - NO inventes información.
+        - SOLO responde con datos obtenidos de las herramientas.
+        - Si no encuentras la respuesta exacta, di: "No he encontrado esa información en el sistema".
+
+        También puedes responder preguntas generales (cultura, cocina, etc.) usando tu propio conocimiento.
+
+        No deduzcas fechas ni datos académicos. Deben ser exactos.
+
+        Responde siempre de forma clara y útil.
+        """
     )
 
     prompt = ChatPromptTemplate.from_messages([
