@@ -1,4 +1,5 @@
 faiss-cpu==1.13.2
+langchain==1.2.15
 langchain-classic==1.0.2
 langchain-community==0.4.1
 langchain-core==1.2.17
