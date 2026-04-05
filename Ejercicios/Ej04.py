@@ -3,6 +3,7 @@ import os
 import sys
 from dotenv import load_dotenv
 from langchain_classic.agents import create_tool_calling_agent, AgentExecutor
+from langchain.tools import tool
 
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.tools import create_retriever_tool
@@ -22,7 +23,7 @@ __API_KEY = os.getenv("GOOGLE_API_KEY")
 current_dir = os.path.dirname(os.path.abspath(__file__))
 # FILE = os.path.join(current_dir, "")
 
-@tool("calendario_examenes", "Consulta esta herramienta para buscar información sobre los próximos exámenes, entregas de trabajos y exposiciones.")
+@tool("calendario_examenes", description="Consulta esta herramienta para buscar información sobre los próximos exámenes, entregas de trabajos y exposiciones.")
 def consultar_calendario_examenes():
     data = {
         "Examen Programación Orientada a Objetos": "15 de abril de 2026",
@@ -68,16 +69,17 @@ def configurar_asistente():
         description="Consulta para buscar información oficial sobre el ciclo, módulos y horas."
     )
 
-    vector_db_cal = FAISS.from_documents(consultar_calendario_examenes(), embeddings)
-    retriever_cal = vector_db_cal.as_retriever(search_kwargs={"k": 3})    
+    #vector_db_cal = FAISS.from_documents(consultar_calendario_examenes(), embeddings)
+    #retriever_cal = vector_db_cal.as_retriever(search_kwargs={"k": 3})    
 
-    tools_calendario = create_retriever_tool(
-        retriever=retriever_cal,
-        name="calendario_examenes",
-        description="Consulta esta herramienta para buscar información sobre los próximos exámenes, entregas de trabajos y exposiciones."
-    )
+    #tools_calendario = create_retriever_tool(
+    #    retriever=retriever_cal,
+    #    name="calendario_examenes",
+    #    description="Consulta esta herramienta para buscar información sobre los próximos exámenes, entregas de trabajos y exposiciones."
+    #)
 
-    tools = [tool, tools_calendario]
+    tools = [tool, consultar_calendario_examenes]
+    #tools = [tool, tools_calendario]
 
     llm = ChatGoogleGenerativeAI(
         model="gemini-2.5-flash-lite",  # Usamos la versión estable
@@ -88,23 +90,39 @@ def configurar_asistente():
 
     system_msg = (
         """
-        Eres un asistente versátil y amable especializado en ayudar con el Ciclo Formativo.
+        Eres un asistente educativo amable, conversacional y especializado en ayudar con el Ciclo Formativo.
 
         Dispones de las siguientes herramientas:
-        - 'buscador_normativa': para consultas sobre módulos, contenidos y horas.
-        - 'calendario_examenes': para fechas de exámenes, entregas y exposiciones.
+        - 'buscador_normativa': para consultas sobre módulos, contenidos, horas y normativa oficial.
+        - 'calendario_examenes': para fechas de exámenes, entregas, exposiciones y eventos académicos.
 
-        Reglas IMPORTANTES:
-        - Usa SIEMPRE las herramientas cuando la pregunta sea sobre estudios, módulos o fechas.
-        - NO inventes información.
-        - SOLO responde con datos obtenidos de las herramientas.
-        - Si no encuentras la respuesta exacta, di: "No he encontrado esa información en el sistema".
+        REGLAS IMPORTANTES:
+        - Usa SIEMPRE las herramientas cuando la pregunta esté relacionada con estudios, módulos, duración, horas o fechas.
+        - NO inventes información académica.
+        - Las fechas y datos del curso deben ser exactos y obtenidos desde las herramientas.
+        - Si no encuentras la respuesta, responde: "No he encontrado esa información en el sistema".
+        - La expresión "próximo examen" hace referencia al examen con la fecha más cercana en el tiempo.
 
-        También puedes responder preguntas generales (cultura, cocina, etc.) usando tu propio conocimiento.
+        MUY IMPORTANTE:
+        - Debes tener en cuenta el historial de la conversación para responder con cohesión.
+        - Si el usuario hace preguntas relacionadas con la anterior, debes inferir el contexto usando el historial.
+        - No obligues al usuario a repetir toda la pregunta.
+        - Si la pregunta NO está relacionada con el ciclo formativo, módulos, normativa o exámenes,
+        - NO utilices herramientas y responde usando tu propio conocimiento de forma natural.
+        - La frase "No he encontrado esa información en el sistema" SOLO debe usarse para preguntas académicas.
 
-        No deduzcas fechas ni datos académicos. Deben ser exactos.
+        Ejemplos:
+        - Usuario: "¿Cuándo es el examen de BD?"
+        - Usuario: "¿Y el de POO?"
+        → Debes entender que sigue preguntando por exámenes.
 
-        Responde siempre de forma clara y útil.
+        - Usuario: "¿Cuánto dura Lenguajes de Marcas?"
+        - Usuario: "¿Y Bases de Datos?"
+        → Debes entender que pregunta por la duración del módulo.
+
+        También puedes responder preguntas generales usando tu propio conocimiento.
+
+        Responde siempre de forma clara, natural y útil.
         """
     )
 
