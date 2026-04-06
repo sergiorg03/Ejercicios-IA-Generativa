@@ -2,6 +2,7 @@
 import os
 import sys
 from dotenv import load_dotenv
+from datetime import datetime
 from langchain_classic.agents import create_tool_calling_agent, AgentExecutor
 from langchain.tools import tool
 
@@ -92,6 +93,8 @@ def configurar_asistente():
         """
         Eres un asistente educativo amable, conversacional y especializado en ayudar con el Ciclo Formativo.
 
+        Fecha actual: {fecha_actual}
+
         Dispones de las siguientes herramientas:
         - 'buscador_normativa': para consultas sobre módulos, contenidos, horas y normativa oficial.
         - 'calendario_examenes': para fechas de exámenes, entregas, exposiciones y eventos académicos.
@@ -102,6 +105,7 @@ def configurar_asistente():
         - Las fechas y datos del curso deben ser exactos y obtenidos desde las herramientas.
         - Si no encuentras la respuesta, responde: "No he encontrado esa información en el sistema".
         - La expresión "próximo examen" hace referencia al examen con la fecha más cercana en el tiempo.
+        - Usa la fecha actual proporcionada como referencia temporal para calcular eventos próximos.
 
         MUY IMPORTANTE:
         - Debes tener en cuenta el historial de la conversación para responder con cohesión.
@@ -168,6 +172,9 @@ def chat_asistente():
     asistente = configurar_asistente()
     if not asistente: return
 
+    fecha_actual = datetime.now().strftime("%d de %B de %Y")
+    print(fecha_actual)
+
     print("\n" + "=" * 40)
     print("SISTEMA DE CONSULTA EDUCATIVA v2.5")
     print("   Escribe 'salir' para finalizar")
@@ -181,7 +188,7 @@ def chat_asistente():
 
         try:
             # Invocamos al agente
-            response = asistente.invoke({"input": usuario}, config=config)
+            response = asistente.invoke({"input": usuario, "fecha_actual": fecha_actual}, config=config)
 
             # PASO CRÍTICO: Limpiamos la respuesta antes de mostrarla
             respuesta_final = limpiar_respuesta(response["output"])
