@@ -15,6 +15,7 @@ from langchain_core.documents import Document
 from langchain_community.document_loaders import PyPDFDirectoryLoader
 from langchain_community.vectorstores import FAISS
 from langchain_community.chat_message_histories import ChatMessageHistory
+from langchain_community.retrievers import BM25Retriever
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
@@ -55,7 +56,7 @@ def configurar_asistente():
     loader = PyPDFDirectoryLoader(os.path.join(current_dir, "normativa/"))
     docs = loader.load()
 
-    splitter = RecursiveCharacterTextSplitter(chunk_size=600, chunk_overlap=100)
+    splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     chunks = splitter.split_documents(docs)
 
     embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
@@ -88,6 +89,7 @@ def configurar_asistente():
         max_output_tokens=700,  # <-- (500-1000 es ideal para RAG)
         max_retries=2,
     )
+    #        - Prioriza el uso de herramientas cuando la pregunta requiera datos exactos como horas, fechas, módulos, normativa, o exámenes.
 
     system_msg = (
         """
@@ -96,11 +98,10 @@ def configurar_asistente():
         Fecha actual: {fecha_actual}
 
         Dispones de las siguientes herramientas:
-        - 'buscador_normativa': para consultas sobre módulos, contenidos, horas y normativa oficial.
+        - 'buscador_normativa': para consultas sobre los módulos impartidos y su duración total, contenidos, horas y normativa oficial.
         - 'calendario_examenes': para fechas de exámenes, entregas, exposiciones y eventos académicos.
 
         REGLAS IMPORTANTES:
-        - Usa SIEMPRE las herramientas cuando la pregunta esté relacionada con estudios, módulos, duración, horas o fechas.
         - NO inventes información académica.
         - Las fechas y datos del curso deben ser exactos y obtenidos desde las herramientas.
         - Si no encuentras la respuesta, responde: "No he encontrado esa información en el sistema".
@@ -111,9 +112,12 @@ def configurar_asistente():
         - Debes tener en cuenta el historial de la conversación para responder con cohesión.
         - Si el usuario hace preguntas relacionadas con la anterior, debes inferir el contexto usando el historial.
         - No obligues al usuario a repetir toda la pregunta.
-        - Si la pregunta NO está relacionada con el ciclo formativo, módulos, normativa o exámenes,
-        - NO utilices herramientas y responde usando tu propio conocimiento de forma natural.
+        - Si la pregunta NO está relacionada con el ciclo formativo, módulos, normativa o exámenes, 
+            NO utilices herramientas y responde usando tu propio conocimiento de forma natural.
         - La frase "No he encontrado esa información en el sistema" SOLO debe usarse para preguntas académicas.
+        - Interpreta preguntas equivalentes como:
+            "cuánto dura", "cuántas horas tiene", "carga horaria", "duración del módulo (nombre del módulo)"
+        - Si la información no aparece literal, busca sinónimos o formulaciones equivalentes dentro de la normativa antes de responder que no se ha encontrado.
 
         Ejemplos:
         - Usuario: "¿Cuándo es el examen de BD?"
@@ -127,6 +131,7 @@ def configurar_asistente():
         También puedes responder preguntas generales usando tu propio conocimiento.
 
         Responde siempre de forma clara, natural y útil.
+        Y si la información SE ENCUENTRA en la normativa, responde con la información exacta de la normativa indicando la PÁGINA en la que se encuentra la información.
         """
     )
 
@@ -142,7 +147,7 @@ def configurar_asistente():
     agent_executor = AgentExecutor(
         agent=agent,
         tools=tools,
-        verbose=False,
+        verbose=True,
         handle_parsing_errors=True
     )
 
