@@ -60,7 +60,7 @@ def chunk_detective():
     )
 
     document_prompt = ChatPromptTemplate.from_template(
-        "Página {metadata[page]}:\n{page_content}"
+        "Página: {page}\nContenido: {page_content}"
     )
 
     combine_docs_chain = create_stuff_documents_chain(llm, prompt, document_prompt=document_prompt)

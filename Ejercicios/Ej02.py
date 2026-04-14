@@ -35,8 +35,9 @@ def candidates_filter():
     print("\nMejores candidatos:")
     print(resultados)
     
-    for i, resultado in resultados:
-        print(f"{i}. {resultado.page_content}")
+    for i, (documento, score) in enumerate(resultados, 1):
+        print(f"{i}. {documento.page_content}")
+        print(f"Score: {score}\n")
 
 if __name__ == "__main__":
     candidates_filter()
